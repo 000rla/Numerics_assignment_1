@@ -24,7 +24,7 @@ def finite_differences():
     for n in range(nt):
         for j in range(1,nx): # loop over space from 1 to nx−1
             # (avoiding boundary conditions)
-            phi[j] = phiOld[j] − u*dt* ...
+            phi[j] = phiOld[j] - u*dt* ...
             # apply boundary conditions of your choice
             #
             # update phi for the next time−step
