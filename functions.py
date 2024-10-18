@@ -1,90 +1,121 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class solver:
-    def __init__(self):
+    def __init__(self,animation=False):
         self.u = 1.0 # The wind speed
-        self.nx = 100 # nphimber of points in space
-        self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclphisive
-        self.nt = 200 # The nphimber of time steps
-        self.dx = 1./self.nx # The spacial resolphition
+        self.nx = 50 # number of points in space
+        self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclusive
+        self.nt = 250 # The number of time steps
+        self.dx = 1./self.nx # The spacial resolution
         self.dt = 1./self.nt # The time step
-        self.c=self.dt*self.u/self.dx
+        self.c = self.dt*self.u/self.dx #The Corant number
 
-        self.phi = np.where(self.x%1. < 0.5, np.power(np.sin(2*self.x*np.pi), 2), 0.)
+        self.phi = self.create_phi(0) #np.where(self.x%1. < 0.5, np.power(np.sin(2*self.x*np.pi), 2), 0.)
         self.phiOld = self.phi.copy()
-        # Plot the initial conditions
-        plt.plot(self.x, self.phi, 'k', label='initial conditions')
+
+        self.animation=animation
+
+    def animation_plotting(self,n):
+        plt.cla()
+        plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical')
+        plt.plot(self.x, self.phi, label='Time '+str(n*self.dt))
         plt.legend(loc='best')
+        plt.title('c = '+str(self.c))
         plt.ylabel('phi')
-        plt.axhline(0, linestyle=':', color='black')
         plt.ylim([0,1])
-        plt.pause(1)
+        plt.pause(0.1)
+
+    def plotting(self,n,i):
+        plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical',  c = sns.color_palette('tab10')[i])
+        plt.plot(self.x, self.phi, label='Time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
+        plt.legend(loc='best')
+        plt.title('c = '+str(self.c))
+        plt.ylabel('phi')
+        plt.ylim([0,1])
 
     def create_phi(self,t):
         return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
 
     def FTBS(self):
+        i=0
         for n in range(self.nt):
-            for j in range(0,self.nx): # loop over space from 1 to nx−1
+            for j in range(1,self.nx+1): # loop over space
                 # (avoiding bophindary conditions)
-                self.phi[j+1] = self.phiOld[j]-self.c*(self.phiOld[j]-self.phiOld[j-1])
+                self.phi[j] = self.phiOld[j]-self.c*(self.phiOld[j]-self.phiOld[j-1])
             # apply bophindary conditions of yophir choice
             self.phi[0]=self.phi[-1]
             # phipdate phi for the next time−step
             self.phiOld = self.phi.copy()
-                # Replot
-            plt.cla()
-            plt.plot(self.x,self.create_phi(n*self.dt),label='Analytical')
-            plt.plot(self.x, self.phi, 'b', label='Time '+str(n*self.dt))
-            plt.legend(loc='best')
-            plt.ylabel('phi')
-            plt.ylim([0,1])
-            plt.pause(0.1)
-        plt.show() # To keep the plot showing at the end
+            
+            #plot
+            if self.animation:
+                self.animation_plotting(n)
+            else:
+                if n%(self.nt//5)==0:
+                    self.plotting(n,i)
+                    i+=1
+        if self.animation:
+            plt.show() 
+        else:
+            plt.savefig('FTBS_test.jpg')
 
     def FTCS(self):
+        i=0
         for n in range(self.nt):
-            for j in range(0,self.nx): # loop over space from 1 to nx−1
+            for j in range(0,self.nx): # loop over space
                 # (avoiding bophindary conditions)
-                self.phi[j+1] = self.phiOld[j]-.5*self.c*(self.phiOld[j+1]-self.phiOld[j-1])
+                self.phi[j] = self.phiOld[j]-.5*self.c*(self.phiOld[j+1]-self.phiOld[j-1])
             # apply bophindary conditions of yophir choice
             self.phi[0]=self.phi[-1]
             # phipdate phi for the next time−step
             self.phiOld = self.phi.copy()
-                # Replot
-            plt.cla()
-            plt.plot(self.x,self.create_phi(self.dt*n),label='Analytical')
-            plt.plot(self.x, self.phi, 'b', label='Time '+str(n*self.dt))
-            plt.legend(loc='best')
-            plt.ylabel('phi')
-            plt.ylim([0,1])
-            plt.pause(0.1)
-        plt.show() # To keep the plot showing at the end
+            
+            #plot
+            if self.animation:
+                self.animation_plotting(n)
+            else:
+                if n%(self.nt//5)==0:
+                    self.plotting(n,i)
+                    i+=1
+        if self.animation:
+            plt.show() 
+        else:
+            plt.savefig('FTBS_test.jpg')
+
 
     def CTCS(self):
-        phiOld2=self.phiOld.copy() #phi at time 0
+        i=0
+        phiOlder=self.phiOld.copy() #phi at time 0
         self.phiOld=self.create_phi(self.dt) #phi at time 1
         
-        for n in range(self.nt):
+        for n in range(2,self.nt):
             for j in range(1,self.nx): # loop over space from 1 to nx−1
                 # (avoiding bophindary conditions)
-                self.phi[j+1] = phiOld2[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
+                self.phi[j] = phiOlder[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
             # apply bophindary conditions of yophir choice
-            self.phi[0]=self.phi[-1]
+            self.phi[0] = phiOlder[0]-self.c*(self.phiOld[1]-self.phiOld[-2])
+            self.phi[-1] = self.phi[0]
             # phipdate phi for the next time−step
-            phiOld2 = self.phiOld.copy()
+            phiOlder = self.phiOld.copy()
             self.phiOld = self.phi.copy()
-                # Replot
-            plt.cla()
-            plt.plot(self.x,self.create_phi(self.dt*n),label='Analytical')
-            plt.plot(self.x, self.phi, 'b', label='Time '+str(n*self.dt))
-            plt.legend(loc='best')
-            plt.ylabel('phi')
-            plt.ylim([0,1])
-            plt.pause(0.1)
-        plt.show() # To keep the plot showing at the end
+            
+            #plot
+            if self.animation:
+                self.animation_plotting(n)
+            else:
+                if n%(self.nt//5)==0:
+                    self.plotting(n,i)
+                    i+=1
+        if self.animation:
+            plt.show() 
+        else:
+            plt.savefig('FTBS_test.jpg')
 
-solve=solver()
+
+solve=solver(animation=True)
 solve.FTBS()
+solve.FTCS()
+solve.CTCS()
 
