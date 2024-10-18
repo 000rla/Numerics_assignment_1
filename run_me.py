@@ -1,7 +1,7 @@
-print('poo')
 import functions
 
 def main():
-    functions.finite_differences()
+    f=functions.solver
+    #f.finite_differences()
     
 main()
