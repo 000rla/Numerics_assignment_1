@@ -17,21 +17,21 @@ class solver:
 
         self.animation=animation
 
-    def animation_plotting(self,n):
+    def animation_plotting(self,n,T='title'):
         plt.cla()
         plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical')
         plt.plot(self.x, self.phi, label='Time '+str(n*self.dt))
-        plt.legend(loc='best')
-        plt.title('c = '+str(self.c))
+        plt.legend(loc='best',title='c = '+str(self.c))
+        plt.title(T)
         plt.ylabel('phi')
         plt.ylim([0,1])
         plt.pause(0.1)
 
-    def plotting(self,n,i):
+    def plotting(self,n,i,T='title'):
         plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical',  c = sns.color_palette('tab10')[i])
         plt.plot(self.x, self.phi, label='Time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
-        plt.legend(loc='best')
-        plt.title('c = '+str(self.c))
+        plt.legend(loc='best',title='c = '+str(self.c))
+        plt.title(T)
         plt.ylabel('phi')
         plt.ylim([0,1])
 
@@ -51,10 +51,10 @@ class solver:
             
             #plot
             if self.animation:
-                self.animation_plotting(n)
+                self.animation_plotting(n,'FTBS')
             else:
                 if n%(self.nt//5)==0:
-                    self.plotting(n,i)
+                    self.plotting(n,i,'FTBS')
                     i+=1
         if self.animation:
             plt.show() 
@@ -76,10 +76,10 @@ class solver:
             
             #plot
             if self.animation:
-                self.animation_plotting(n)
+                self.animation_plotting(n,'FTCS')
             else:
                 if n%(self.nt//5)==0:
-                    self.plotting(n,i)
+                    self.plotting(n,i,'FTCS')
                     i+=1
         if self.animation:
             plt.show() 
@@ -90,10 +90,10 @@ class solver:
 
     def CTCS(self):
         i=0
-        phiOlder=self.phiOld.copy() #phi at time 0
+        phiOlder=self.create_phi(0)#self.phiOld.copy() #phi at time 0
         self.phiOld=self.create_phi(self.dt) #phi at time 1
         
-        for n in range(1,self.nt):
+        for n in range(2,self.nt):
             for j in range(1,self.nx): # loop over space 
                 # (avoiding bophindary conditions)
                 self.phi[j] = phiOlder[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
@@ -106,10 +106,10 @@ class solver:
             
             #plot
             if self.animation:
-                self.animation_plotting(n)
+                self.animation_plotting(n,'CTCS')
             else:
                 if n%(self.nt//5)==0:
-                    self.plotting(n,i)
+                    self.plotting(n,i,'CTCS')
                     i+=1
         if self.animation:
             plt.show() 
