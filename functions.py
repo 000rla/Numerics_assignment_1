@@ -16,6 +16,7 @@ class solver:
         self.phiOld = self.phi.copy()
 
         self.animation=animation
+        fig, self.ax = plt.subplots(1,1,figsize=(14,6))
 
     def animation_plotting(self,n,T='title'):
         plt.cla()
@@ -28,12 +29,25 @@ class solver:
         plt.pause(0.1)
 
     def plotting(self,n,i,T='title'):
-        plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical',  c = sns.color_palette('tab10')[i])
-        plt.plot(self.x, self.phi, label='Time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
-        plt.legend(loc='best',title='c = '+str(self.c))
+        plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical at time '+str(n*self.dt),  c = sns.color_palette('tab10')[i])
+        plt.plot(self.x, self.phi, label=T+' at time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
+        # plt.legend(loc='best',title='c = '+str(self.c))
+
+        # Shrink current axis by 20%
+        box = self.ax.get_position()
+        self.ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                 box.width, box.height * 0.9])
+
+        # Put a legend below current axis
+        self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
+          fancybox=True, shadow=True, ncol=5)
+
         plt.title(T)
-        plt.ylabel('phi')
+        plt.ylabel('$\\phi$')
+        plt.xlabel('x')
+        plt.grid(alpha=.5)
         plt.ylim([0,1])
+        plt.xlim(0,1)
 
     def create_phi(self,t):
         return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
@@ -84,7 +98,7 @@ class solver:
         if self.animation:
             plt.show() 
         else:
-            plt.savefig('FTBS_test.jpg')
+            plt.savefig('FTCS_test.jpg')
             plt.show() 
 
 
@@ -92,6 +106,10 @@ class solver:
         i=0
         phiOlder=self.create_phi(0)#self.phiOld.copy() #phi at time 0
         self.phiOld=self.create_phi(self.dt) #phi at time 1
+
+        if not self.animation:
+            self.plotting(0,i,'CTCS')
+            i+=1
         
         for n in range(2,self.nt):
             for j in range(1,self.nx): # loop over space 
@@ -114,12 +132,14 @@ class solver:
         if self.animation:
             plt.show() 
         else:
-            plt.savefig('FTBS_test.jpg')
+            plt.savefig('CTCS_test.jpg')
             plt.show() 
 
 
 solve=solver(animation=False)
-solve.FTBS()
-solve.FTCS()
+# solve.FTBS()
+# solve=solver()
+# solve.FTCS()
+# solve=solver()
 solve.CTCS()
 
