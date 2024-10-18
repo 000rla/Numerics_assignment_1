@@ -60,15 +60,17 @@ class solver:
             plt.show() 
         else:
             plt.savefig('FTBS_test.jpg')
+            plt.show() 
 
     def FTCS(self):
         i=0
         for n in range(self.nt):
-            for j in range(0,self.nx): # loop over space
+            for j in range(1,self.nx): # loop over space
                 # (avoiding bophindary conditions)
                 self.phi[j] = self.phiOld[j]-.5*self.c*(self.phiOld[j+1]-self.phiOld[j-1])
             # apply bophindary conditions of yophir choice
-            self.phi[0]=self.phi[-1]
+            self.phi[0] = self.phiOld[0]-.5*self.c*(self.phiOld[1]-self.phiOld[-2])
+            self.phi[-1]=self.phi[0]
             # phipdate phi for the next time−step
             self.phiOld = self.phi.copy()
             
@@ -83,6 +85,7 @@ class solver:
             plt.show() 
         else:
             plt.savefig('FTBS_test.jpg')
+            plt.show() 
 
 
     def CTCS(self):
@@ -90,8 +93,8 @@ class solver:
         phiOlder=self.phiOld.copy() #phi at time 0
         self.phiOld=self.create_phi(self.dt) #phi at time 1
         
-        for n in range(2,self.nt):
-            for j in range(1,self.nx): # loop over space from 1 to nx−1
+        for n in range(1,self.nt):
+            for j in range(1,self.nx): # loop over space 
                 # (avoiding bophindary conditions)
                 self.phi[j] = phiOlder[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
             # apply bophindary conditions of yophir choice
@@ -112,9 +115,10 @@ class solver:
             plt.show() 
         else:
             plt.savefig('FTBS_test.jpg')
+            plt.show() 
 
 
-solve=solver(animation=True)
+solve=solver(animation=False)
 solve.FTBS()
 solve.FTCS()
 solve.CTCS()
