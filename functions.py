@@ -36,7 +36,6 @@ class solver:
         self.phiOld = self.phi.copy()
 
         self.animation=animation
-        fig, self.ax = plt.subplots(1,1,figsize=(14,6))
 
     def animation_plotting(self,n,T='title'):
         """Create an animation of the finite difference solution and the analytical solution evolving over time.
@@ -46,8 +45,10 @@ class solver:
             T (str, optional): The title given to the plot and to the legend keys. Defaults to 'title'.
         """
         plt.cla()
+        
         plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical')
         plt.plot(self.x, self.phi, label='Time '+str(n*self.dt))
+
         plt.legend(loc='best',title='c = '+str(self.c))
         plt.title(T)
         plt.ylabel('phi')
@@ -79,7 +80,7 @@ class solver:
         plt.xlim(0,1)
 
     def create_phi(self,t):
-        """Finds the analytical soltion to the linear advection equation at given time t.
+        """Finds the analytical soltion to the linear advection equation at given time t as given in the Kick-Off Camp notes.
 
         Args:
             t (int): time
@@ -92,17 +93,22 @@ class solver:
     def FTBS(self):
         """Solves the linear advection equation using the forward in time backwards in space scheme and plots the results.
         """
+        # set up plotting
+        fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
-        for n in range(self.nt):
+
+        # solve for phi
+        for n in range(self.nt): # loop over time
             for j in range(1,self.nx+1): # loop over space
-                # (avoiding bophindary conditions)
                 self.phi[j] = self.phiOld[j]-self.c*(self.phiOld[j]-self.phiOld[j-1])
-            # apply bophindary conditions of yophir choice
+        
+        # setting periodic boundry
             self.phi[0]=self.phi[-1]
-            # phipdate phi for the next time−step
+
+        # update phi for the next time−step
             self.phiOld = self.phi.copy()
             
-            #plot
+        # plot solutions
             if self.animation:
                 self.animation_plotting(n,'FTBS')
             else:
@@ -118,18 +124,24 @@ class solver:
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
         """
+
+        # set up plotting
+        fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
+
+        # solve for phi
         for n in range(self.nt):
             for j in range(1,self.nx): # loop over space
-                # (avoiding bophindary conditions)
                 self.phi[j] = self.phiOld[j]-.5*self.c*(self.phiOld[j+1]-self.phiOld[j-1])
-            # apply bophindary conditions of yophir choice
+            
+        # setting periodic boundry
             self.phi[0] = self.phiOld[0]-.5*self.c*(self.phiOld[1]-self.phiOld[-2])
             self.phi[-1]=self.phi[0]
-            # phipdate phi for the next time−step
+
+        # update phi for the next time−step
             self.phiOld = self.phi.copy()
             
-            #plot
+        #plot solutions
             if self.animation:
                 self.animation_plotting(n,'FTCS')
             else:
@@ -146,31 +158,33 @@ class solver:
     def CTCS(self):
         """Solves the linear advection equation using the centered in time centered in space scheme and plots the results.
         """
+        #set up plotting
+        fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
-        phiOlder=self.create_phi(0)#self.phiOld.copy() #phi at time 0
-        self.phiOld=self.create_phi(self.dt) #phi at time 1
 
-        if not self.animation:
-            self.plotting(0,i,'CTCS')
-            i+=1
+        # define phi at time 0 and time 1
+        phiOlder = self.create_phi(0) #phi at time 0
+        self.phiOld = self.create_phi(self.dt) #phi at time 1
         
-        for n in range(2,self.nt):
-            for j in range(1,self.nx): # loop over space 
-                # (avoiding bophindary conditions)
+        # solve for phi
+        for n in range(2,self.nt): #loop over time
+            for j in range(1,self.nx): # loop over space
                 self.phi[j] = phiOlder[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
-            # apply bophindary conditions of yophir choice
+
+        # setting periodic boundry
             self.phi[0] = phiOlder[0]-self.c*(self.phiOld[1]-self.phiOld[-2])
             self.phi[-1] = self.phi[0]
-            # phipdate phi for the next time−step
+
+        # update phi for the next time−step
             phiOlder = self.phiOld.copy()
             self.phiOld = self.phi.copy()
             
-            #plot
+        # plot solutions
             if self.animation:
                 self.animation_plotting(n,'CTCS')
             else:
-                if n%(self.nt//5)==0:
-                    self.plotting(n,i,'CTCS')
+                if n%(self.nt//5) == 0 or n == 2:
+                    self.plotting(n, i, 'CTCS')
                     i+=1
         if self.animation:
             plt.show() 
