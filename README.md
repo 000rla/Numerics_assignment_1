@@ -13,6 +13,7 @@ Orla O'Neill [email here](mailto:o.j.oneill@prg.reading.ac.uk)
 * numpy (v1.26.4)
 * matplotlib (v3.8.0)
 * seaborn (v0.13.2)
+* scipy (v1.11.4)
 
 ## Acknowledgments
 Thank you to Hilary Weller for providing assistance and the kick-off camp code to help me complete this project.
