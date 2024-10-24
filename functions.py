@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy as sc
 
 class solver:
     """Numerical solver for the linear advection equation using three different finite difference schemes:
@@ -23,7 +24,7 @@ class solver:
         nt (int, optional): Defaults to 250. The number of time steps. Keep in mind the Courant number when choosing a value.
     """
 
-    def __init__(self, animation=False, u=1, nx=50, nt=250):
+    def __init__(self, animation=False, conservation_check=False, u=1, nx=50, nt=250):
         self.u = u # The wind speed
         self.nx = nx # number of points in space
         self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclusive
@@ -36,6 +37,28 @@ class solver:
         self.phiOld = self.phi.copy()
 
         self.animation=animation
+        self.conservation_check=conservation_check
+
+        #plotting analytical solution over time
+        fig, ax = plt.subplots(1,1,figsize=(14,6))
+        for n in [0.0,0.2,0.4,0.6,0.8]:
+            plt.plot(self.x,self.create_phi(n), label='Time = '+str(n))
+
+        #making the legend
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]) # Shrink current axis by 20%
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=5) # Put a legend below current axis
+
+        plt.title('Analytical solution of $\\phi$')
+        plt.ylabel('$\\phi$')
+        plt.xlabel('x')
+        plt.grid(alpha=.5)
+        plt.ylim([0,1])
+        plt.xlim(0,1)
+
+        plt.savefig('analytical_solution.jpg')
+        plt.show()
+        plt.cla()
 
     def animation_plotting(self,n,T='title'):
         """Create an animation of the finite difference solution and the analytical solution evolving over time.
@@ -45,7 +68,7 @@ class solver:
             T (str, optional): The title given to the plot and to the legend keys. Defaults to 'title'.
         """
         plt.cla()
-        
+
         plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical')
         plt.plot(self.x, self.phi, label='Time '+str(n*self.dt))
 
@@ -78,6 +101,16 @@ class solver:
         plt.grid(alpha=.5)
         plt.ylim([0,1])
         plt.xlim(0,1)
+    
+    def mass_check(self,n):
+        #intergrate using simpsons rule
+        mass_anal=sc.integrate.simps(self.create_phi(self.dt*n),self.x)
+        mass_fd = sc.integrate.simps(self.phi,self.x)
+
+        #printing results
+        print("at time "+str(n*self.dt)+" the volume of the analytical solution was "+str(mass_anal))
+        print("the volume of the finite difference solution was "+str(mass_fd))
+        print("that's a difference of "+str(abs(mass_anal-mass_fd)))
 
     def create_phi(self,t):
         """Finds the analytical soltion to the linear advection equation at given time t as given in the Kick-Off Camp notes.
@@ -93,6 +126,8 @@ class solver:
     def FTBS(self):
         """Solves the linear advection equation using the forward in time backwards in space scheme and plots the results.
         """
+        print("now solving using FTBS")
+
         # set up plotting
         fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
@@ -113,6 +148,8 @@ class solver:
                 self.animation_plotting(n,'FTBS')
             else:
                 if n%(self.nt//5)==0:
+                    if self.conservation_check:
+                        self.mass_check(n)
                     self.plotting(n,i,'FTBS')
                     i+=1
         if self.animation:
@@ -124,7 +161,8 @@ class solver:
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
         """
-
+        print("now solving using FTCS")
+        
         # set up plotting
         fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
@@ -146,6 +184,8 @@ class solver:
                 self.animation_plotting(n,'FTCS')
             else:
                 if n%(self.nt//5)==0:
+                    if self.conservation_check:
+                        self.mass_check(n)
                     self.plotting(n,i,'FTCS')
                     i+=1
         if self.animation:
@@ -158,6 +198,7 @@ class solver:
     def CTCS(self):
         """Solves the linear advection equation using the centered in time centered in space scheme and plots the results.
         """
+        print('Now solving using CTCS')
         #set up plotting
         fig, self.ax = plt.subplots(1,1,figsize=(14,6))
         i=0
@@ -184,6 +225,8 @@ class solver:
                 self.animation_plotting(n,'CTCS')
             else:
                 if n%(self.nt//5) == 0 or n == 2:
+                    if self.conservation_check:
+                        self.mass_check(n)
                     self.plotting(n, i, 'CTCS')
                     i+=1
         if self.animation:
