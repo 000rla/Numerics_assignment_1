@@ -26,7 +26,7 @@ def convergance_experiment():
     ftcs_error=[]
     ctcs_error=[]
 
-    f=functions.solver(plotting=False, nx=nx[0], nt=nt[0])
+    f=functions.solver(plotting=True, nx=nx[0], nt=nt[0])
     err1=f.FTBS()
     ftbs_error.append(err1)
     err2=f.FTCS()

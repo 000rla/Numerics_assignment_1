@@ -174,7 +174,7 @@ class solver:
             plt.savefig('FTBS_test.jpg')
             plt.show() 
 
-        return self.RMSE(self.create_phi(n*self.dt),self.phi)
+        return self.RMSE(self.create_phi(1),self.phi)
 
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
@@ -213,7 +213,7 @@ class solver:
             plt.savefig('FTCS_test.jpg')
             plt.show() 
 
-        return self.RMSE(self.create_phi(n*self.dt),self.phi)
+        return self.RMSE(self.create_phi(1),self.phi)
 
 
     def CTCS(self):
@@ -257,4 +257,4 @@ class solver:
             plt.savefig('CTCS_test.jpg')
             plt.show() 
 
-        return self.RMSE(self.create_phi(n*self.dt),self.phi)
+        return self.RMSE(self.create_phi(1),self.phi)
