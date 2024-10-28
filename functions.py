@@ -33,6 +33,8 @@ class solver:
         self.dt = 1./self.nt # The time step
         self.c = self.dt*self.u/self.dx #The Courant number
 
+        print("The Courant number for this experiment is: ",self.c)
+
         self.phi = self.create_phi(0) #np.where(self.x%1. < 0.5, np.power(np.sin(2*self.x*np.pi), 2), 0.)
         self.phiOld = self.phi.copy()
 
@@ -57,7 +59,7 @@ class solver:
         # plt.ylim([0,1])
         # plt.xlim(0,1)
 
-        # plt.savefig('analytical_solution.jpg')
+        # plt.savefig('analytical_solution.pdf')
         # plt.show()
         # plt.cla()
 
@@ -87,24 +89,21 @@ class solver:
             i (int): Chooses the colour to be used for the plotting from seaborn package.
             T (str, optional): The title given to the plot and to the legend keys. Defaults to 'title'.
         """
-        if self.plot:
-            plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical at time '+str(n*self.dt),  c = sns.color_palette('tab10')[i])
-            plt.plot(self.x, self.phi, label=T+' at time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
+        
+        plt.plot(self.x,self.create_phi(self.dt*n), linestyle='dashed', label='Analytical at time '+str(n*self.dt),  c = sns.color_palette('tab10')[i])
+        plt.plot(self.x, self.phi, label=T+' at time '+str(n*self.dt), c = sns.color_palette('tab10')[i])
 
-            #making the legend
-            box = self.ax.get_position()
-            self.ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]) # Shrink current axis by 20%
-            self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=5) # Put a legend below current axis
+        #making the legend
+        box = self.ax.get_position()
+        self.ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]) # Shrink current axis by 20%
+        self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=5) # Put a legend below current axis
 
-            plt.title(T)
-            plt.ylabel('$\\phi$')
-            plt.xlabel('x')
-            plt.grid(alpha=.5)
-            plt.ylim([0,1])
-            plt.xlim(0,1)
-
-        else:
-            pass
+        plt.title(T)
+        plt.ylabel('$\\phi$')
+        plt.xlabel('x')
+        plt.grid(alpha=.5)
+        plt.ylim([0,1])
+        plt.xlim(0,1)
     
     def mass_check(self,n):
         #intergrate using simpsons rule
@@ -171,10 +170,10 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('FTBS_test.jpg')
+            plt.savefig('FTBS_test.pdf')
             plt.show() 
 
-        return self.RMSE(self.create_phi(1),self.phi)
+        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
 
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
@@ -210,10 +209,10 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('FTCS_test.jpg')
+            plt.savefig('FTCS_test.pdf')
             plt.show() 
 
-        return self.RMSE(self.create_phi(1),self.phi)
+        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
 
 
     def CTCS(self):
@@ -254,7 +253,7 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('CTCS_test.jpg')
+            plt.savefig('CTCS_test.pdf')
             plt.show() 
 
-        return self.RMSE(self.create_phi(1),self.phi)
+        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
