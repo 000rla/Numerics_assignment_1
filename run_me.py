@@ -1,4 +1,9 @@
 import functions
+import matplotlib.pyplot as plt
+import numpy as np
+
+import scipy.optimize as spo
+
 
 def main():
     """runs the finite difference solvers for the linear advection equation
@@ -16,54 +21,40 @@ def main_animations():
     f.FTCS()
     # f.CTCS()
 
+def linear_function(x,m,c):
+    return m*x+c
+
 def convergance_experiment():
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    nx=[50,100,150]
-    nt=[250,500,750]
-    ftbs_error=[]
-    ftcs_error=[]
-    ctcs_error=[]
-
-    f=functions.solver(plotting=False, nx=nx[0], nt=nt[0])
-    err1=f.FTBS()
-    ftbs_error.append(err1)
-    err2=f.FTCS()
-    ftcs_error.append(err2)
-    err3=f.CTCS()
-    ctcs_error.append(err3)
-
-    g=functions.solver(plotting=False, nx=nx[1], nt=nt[1])
-    err1=g.FTBS()
-    ftbs_error.append(err1)
-    err2=f.FTCS()
-    ftcs_error.append(err2)
-    err3=f.CTCS()
-    ctcs_error.append(err3)
-
-    h=functions.solver(plotting=False, nx=nx[2], nt=nt[2])
-    err1=h.FTBS()
-    ftbs_error.append(err1)
-    err2=f.FTCS()
-    ftcs_error.append(err2)
-    err3=f.CTCS()
-    ctcs_error.append(err3)
-
-    fig = plt.figure()
-    ax = plt.gca()
     
-    plt.scatter(nx,ftbs_error,label='FTBS',c='b')
-    plt.scatter(nx,ftcs_error,label='FTCS',c='r')
-    plt.scatter(nx,ctcs_error,label='CTCS',c='g')
-    plt.loglog([nx[0],nx[-1]],[ftbs_error[0],ftbs_error[-1]],c='c',linestyle='dashed',label='FTBS')
-    plt.loglog([nx[0],nx[-1]],[ftcs_error[0],ftcs_error[-1]],c='m',linestyle='dashed',label='FTCS')
-    plt.loglog([nx[0],nx[-1]],[ctcs_error[0],ctcs_error[-1]],c='olive',linestyle='dashed',label='CTCS')
+    nx=np.array([50,100,200])
+    nt=5*nx
+    ftbs_error=np.zeros(len(nx))
+    #ftcs_error=np.zeros(len(nx))
+    ctcs_error=np.zeros(len(nx))
+    
+    for i in range(len(nx)):
+        f=functions.solver(plotting=False, nx=nx[i], nt=nt[i])
+        ftbs_error[i]=f.FTBS()
+        #ftcs_error[i]=f.FTCS()
+        ctcs_error[i]=f.CTCS()
 
-    ax.set_yscale('log')
-    ax.set_xscale('log')
+    [m_ftbs_sp, c_ftbs_sp], pcov_ftbs_fit = spo.curve_fit(linear_function, np.log(1/nx), np.log(ftbs_error))
+    [m_ctcs_sp, c_ctcs_sp], pcov_ctcs_fit = spo.curve_fit(linear_function, np.log(1/nx), np.log(ctcs_error))
+    
+    plt.loglog(1/nx, ftbs_error, '--bo', label='FTBS')
+    plt.loglog(1/nx, 15*m_ftbs_sp/nx, 'b', label='Scipy fit: m ='+str(round(m_ftbs_sp,3)))
+    plt.loglog(1/nx, 15*1/nx, '--c', label='A$\\Delta x^2$')
+    
+    plt.loglog(1/nx, ctcs_error, '--ro', label='CTCS')
+    plt.loglog(1/nx, .1*m_ctcs_sp/nx, 'r', label='Scipy fit: m ='+str(round(m_ctcs_sp,3)))
+    plt.loglog(1/nx, .1*2/nx,'--m', label='2A$\\Delta x^2$')
+
+    plt.xlabel('$\\Delta x$')
+    plt.ylabel('$l_2$ error')
+
     plt.grid()
     plt.legend()
+    plt.savefig('convergance_experiment.pdf')
     plt.show()
     
 convergance_experiment()

@@ -18,14 +18,13 @@ class solver:
         CTCS : solve the equation using the center time center space scheme
 
     Args:
-        animation (bool, optional): Defaults to False. If True, animation_plotting will run, otherwise plotting will run. 
-        u (float, optional): Defaults to 1.0. The wind speed
+        animation (bool, optional): Defaults to False. If True, animation_plotting will run, otherwise plotting will run.
         nx (int, optional): Defaults to 50. The number of points in space. Keep in mind the Courant number when choosing a value.
         nt (int, optional): Defaults to 250. The number of time steps. Keep in mind the Courant number when choosing a value.
     """
 
-    def __init__(self, plotting=True, animation=False, conservation_check=False, u=1, nx=50, nt=250, x=None):
-        self.u = u # The wind speed
+    def __init__(self, plotting=True, animation=False, conservation_check=False, nx=50, nt=250):
+        self.u = 1. # The wind speed
         self.nx = int(nx) # number of points in space
         self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclusive
         self.nt = int(nt) # The number of time steps
@@ -42,26 +41,27 @@ class solver:
         self.animation=animation
         self.conservation_check=conservation_check
 
-        # #plotting analytical solution over time
-        # fig, ax = plt.subplots(1,1,figsize=(14,6))
-        # for n in [0.0,0.2,0.4,0.6,0.8]:
-        #     plt.plot(self.x,self.create_phi(n), label='Time = '+str(n))
+        if plotting:
+            #plotting analytical solution over time
+            fig, ax = plt.subplots(1,1,figsize=(14,6))
+            for n in [0.0,0.2,0.4,0.6,0.8]:
+                plt.plot(self.x,self.create_phi(n), label='Time = '+str(n))
 
-        # #making the legend
-        # box = ax.get_position()
-        # ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]) # Shrink current axis by 20%
-        # ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=5) # Put a legend below current axis
+            #making the legend
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]) # Shrink current axis by 20%
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=5) # Put a legend below current axis
 
-        # plt.title('Analytical solution of $\\phi$')
-        # plt.ylabel('$\\phi$')
-        # plt.xlabel('x')
-        # plt.grid(alpha=.5)
-        # plt.ylim([0,1])
-        # plt.xlim(0,1)
+            plt.title('Analytical solution of $\\phi$')
+            plt.ylabel('$\\phi$')
+            plt.xlabel('x')
+            plt.grid(alpha=.5)
+            #plt.ylim([0,1])
+            plt.xlim(0,1)
 
-        # plt.savefig('analytical_solution.pdf')
-        # plt.show()
-        # plt.cla()
+            plt.savefig('analytical_solution.pdf')
+            plt.show()
+            plt.cla()
 
     def animation_plotting(self,n,T='title'):
         """Create an animation of the finite difference solution and the analytical solution evolving over time.
@@ -78,7 +78,7 @@ class solver:
         plt.legend(loc='best',title='c = '+str(self.c))
         plt.title(T)
         plt.ylabel('phi')
-        plt.ylim([0,1])
+        #plt.ylim([0,1])
         plt.pause(0.1)
 
     def plotting(self,n,i,T='title'):
@@ -102,7 +102,7 @@ class solver:
         plt.ylabel('$\\phi$')
         plt.xlabel('x')
         plt.grid(alpha=.5)
-        plt.ylim([0,1])
+        #plt.ylim([0,1])
         plt.xlim(0,1)
     
     def mass_check(self,n):
@@ -124,18 +124,14 @@ class solver:
         Returns:
             phi (numpy array): analytical solution to the linear advection equation at time t.
         """
-        return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
-    
-    def convergance_checker(self):
-        plt.loglog((np.arange(1,self.nt)),(self.error_FTBS[1:]),label='FTBS')
-        plt.loglog((np.arange(1,self.nt)),(self.error_FTCS[1:]),label='FTCS')
-        plt.loglog((np.arange(3,self.nt)),(self.error_CTCS[1:]),label='CTCS')
-        plt.grid()
-        plt.legend()
-        plt.show()
+        return np.sin(2*np.pi*(self.x-self.u*t))
+        #return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
 
     def RMSE(self,aim,pred):
         return np.sqrt(np.mean((aim-pred)**2))
+    
+    def l2_error(self,aim,pred):
+            return np.sqrt(sum(self.dx*(pred-aim)**2))/np.sqrt(sum(self.dx*aim**2))
     
 
     def FTBS(self):
@@ -173,7 +169,7 @@ class solver:
             plt.savefig('FTBS_test.pdf')
             plt.show() 
 
-        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
+        return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
 
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
@@ -212,7 +208,7 @@ class solver:
             plt.savefig('FTCS_test.pdf')
             plt.show() 
 
-        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
+        return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
 
 
     def CTCS(self):
@@ -229,7 +225,7 @@ class solver:
         self.phiOld = self.create_phi(self.dt) #phi at time 1
         
         # solve for phi
-        for n in range(2,self.nt): #loop over time
+        for n in range(1,self.nt): #loop over time
             for j in range(1,self.nx): # loop over space
                 self.phi[j] = phiOlder[j]-self.c*(self.phiOld[j+1]-self.phiOld[j-1])
 
@@ -255,5 +251,5 @@ class solver:
         if self.plot:
             plt.savefig('CTCS_test.pdf')
             plt.show() 
-
-        return self.RMSE(self.create_phi(self.nt*self.dt),self.phi)
+        print(n*self.dt)
+        return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
