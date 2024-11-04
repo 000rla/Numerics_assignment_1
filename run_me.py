@@ -42,17 +42,17 @@ def convergance_experiment():
     [m_ctcs_sp, c_ctcs_sp], pcov_ctcs_fit = spo.curve_fit(linear_function, np.log(1/nx), np.log(ctcs_error))
     
     plt.loglog(1/nx, ftbs_error, '--bo', label='FTBS')
-    plt.loglog(1/nx, 15*m_ftbs_sp/nx, 'b', label='Scipy fit: m ='+str(round(m_ftbs_sp,3)))
-    plt.loglog(1/nx, 15*1/nx, '--c', label='A$\\Delta x^2$')
-    
+    plt.loglog(1/nx, 10/nx**m_ftbs_sp, 'b', label='Scipy fit: m ='+str(round(m_ftbs_sp,3)))
+    plt.loglog(1/nx, 14/nx, '--c', label='$A\\Delta x$')
+
     plt.loglog(1/nx, ctcs_error, '--ro', label='CTCS')
-    plt.loglog(1/nx, .1*m_ctcs_sp/nx, 'r', label='Scipy fit: m ='+str(round(m_ctcs_sp,3)))
-    plt.loglog(1/nx, .1*2/nx,'--m', label='2A$\\Delta x^2$')
+    plt.loglog(1/nx, 45/nx**m_ctcs_sp, 'r', label='Scipy fit: m ='+str(round(m_ctcs_sp,3)))
+    plt.loglog(1/nx, 45/nx**2,'--m', label='$A\\Delta x^2$')
 
     plt.xlabel('$\\Delta x$')
     plt.ylabel('$l_2$ error')
 
-    plt.grid()
+    plt.grid(which='both',alpha=0.5)
     plt.legend()
     plt.savefig('convergance_experiment.pdf')
     plt.show()
