@@ -15,18 +15,24 @@ class solver:
     Functions:
         plotting : outputs a plot of the numeric solution at five time points
         animation_plotting : outputs an animation of the numeric solution 
-        create phi : find the analytical solution for the linear advection equation
+        mass_check : finds the difference in volumnes between the analytical and numeric solutions
+        create_phi : find the analytical solution for the linear advection equation
+        RMSE : finds the root mean squared error
+        l2_error : finds the l^2 error
         FTBS : solve the equation using the forward time backwards space scheme
         FTCS : solve the equation using the forward time center space scheme
         CTCS : solve the equation using the center time center space scheme
 
     Args:
-        animation (bool, optional): Defaults to False. If True, animation_plotting will run, otherwise plotting will run.
+        plot (bool, optional): Defaults to True. If True, the function plotting will run
+        animation (bool, optional): Defaults to False. If True, animation_plotting will run
+        convergence_experiment (bool, optional): Defaults to False. If True, uses different initial conditions more sutible for the convergence experiment (a sine wave), else returns a sin^2 wave
+        conservation_check (bool, optional): Defaults to False. If True, will print the difference in volumnes between the analytical and numeric solutions.
         nx (int, optional): Defaults to 50. The number of points in space. Keep in mind the Courant number when choosing a value.
         nt (int, optional): Defaults to 250. The number of time steps. Keep in mind the Courant number when choosing a value.
     """
 
-    def __init__(self, plotting=True, animation=False, convergence_experiment=False, conservation_check=False, nx=50, nt=250):
+    def __init__(self, plot=True, animation=False, convergence_experiment=False, conservation_check=False, nx=50, nt=250):
         self.u = 1. # The wind speed
         self.nx = int(nx) # number of points in space
         self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclusive
@@ -37,15 +43,12 @@ class solver:
 
         print("The Courant number for this experiment is: ",self.c)
 
-        self.plot=plotting
+        self.plot=plot
         self.animation=animation
         self.convergence_experiment=convergence_experiment
         self.conservation_check=conservation_check
 
-        # self.phi = self.create_phi(0) 
-        # self.phiOld = self.phi.copy()
-
-        if plotting:
+        if plot:
             #plotting analytical solution over time
             fig, ax = plt.subplots(1,1,figsize=(14,6))
             for n in [0.0,0.2,0.4,0.6,0.8]:
@@ -109,6 +112,11 @@ class solver:
         plt.xlim(0,1)
     
     def mass_check(self,n):
+        """Finds the difference between the volumes of the analytical and numeric solutions and prints out the values.
+
+        Args:
+            n (int): time step
+        """
         #intergrate using simpsons rule
         mass_anal=sc.integrate.simps(self.create_phi(self.dt*n),self.x)
         mass_fd = sc.integrate.simps(self.phi,self.x)
@@ -120,6 +128,7 @@ class solver:
 
     def create_phi(self,t):
         """Finds the analytical soltion to the linear advection equation at given time t as given in the Kick-Off Camp notes.
+            For convergence_experiment == True, the function returned is a sine wave. Otherwise it is a sine squared wave.
 
         Args:
             t (int): time
@@ -133,10 +142,28 @@ class solver:
             return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
 
     def RMSE(self,aim,pred):
+        """Finds the root mean squared error
+
+        Args:
+            aim (array): The target value. In the case of this experiment, it is the analytical solution.
+            pred (array): The predicted value. In the case of this experiment, it is the numeric solution.
+
+        Returns:
+            RMSE: int
+        """
         return np.sqrt(np.mean((aim-pred)**2))
     
     def l2_error(self,aim,pred):
-            return np.sqrt(sum(self.dx*(pred-aim)**2))/np.sqrt(sum(self.dx*aim**2))
+        """Finds the l^2 error
+
+        Args:
+            aim (array): The target value. In the case of this experiment, it is the analytical solution.
+            pred (array): The predicted value. In the case of this experiment, it is the numeric solution.
+
+        Returns:
+            l2_error: int
+        """
+        return np.sqrt(sum(self.dx*(pred-aim)**2))/np.sqrt(sum(self.dx*aim**2))
     
     
 

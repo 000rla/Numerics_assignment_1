@@ -1,7 +1,6 @@
 import functions
 import matplotlib.pyplot as plt
 import numpy as np
-
 import scipy.optimize as spo
 
 
@@ -22,6 +21,8 @@ def main_animations():
     f.CTCS()
 
 def convergance_experiment():
+    """finds the order of convergence of the FTBS and CTCS schemes
+    """
     
     nx=np.array([50,100,200])
     nt=5*nx
@@ -30,7 +31,7 @@ def convergance_experiment():
     ctcs_error=np.zeros(len(nx))
     
     for i in range(len(nx)):
-        f=functions.solver(plotting=False, convergence_experiment=True, nx=nx[i], nt=nt[i])
+        f=functions.solver(plot=False, convergence_experiment=True, nx=nx[i], nt=nt[i])
         ftbs_error[i]=f.FTBS()
         #ftcs_error[i]=f.FTCS()
         ctcs_error[i]=f.CTCS()
