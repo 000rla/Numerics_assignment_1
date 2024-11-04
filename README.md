@@ -19,6 +19,7 @@ Orla O'Neill [email here](mailto:o.j.oneill@prg.reading.ac.uk)
 1. Download both 'functions.py' and 'run_me.py'
 2. Check dependencies are installed
 3. Run 'run_me.py'
+
 This will produce the results and plots discussed in the report "Numerically Solving the Linear Advection Equation" by Orla O'Neill.
 
 ## Acknowledgments
