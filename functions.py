@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy as sc
 
+def linear_function(x,m,c):
+        return m*x+c
+
 class solver:
     """Numerical solver for the linear advection equation using three different finite difference schemes:
         Forward time backwards space (FTBS)
@@ -23,7 +26,7 @@ class solver:
         nt (int, optional): Defaults to 250. The number of time steps. Keep in mind the Courant number when choosing a value.
     """
 
-    def __init__(self, plotting=True, animation=False, conservation_check=False, nx=50, nt=250):
+    def __init__(self, plotting=True, animation=False, convergence_experiment=False, conservation_check=False, nx=50, nt=250):
         self.u = 1. # The wind speed
         self.nx = int(nx) # number of points in space
         self.x = np.linspace(0.0, 1.0, self.nx+1) # From zero to one inclusive
@@ -34,12 +37,13 @@ class solver:
 
         print("The Courant number for this experiment is: ",self.c)
 
-        self.phi = self.create_phi(0) #np.where(self.x%1. < 0.5, np.power(np.sin(2*self.x*np.pi), 2), 0.)
-        self.phiOld = self.phi.copy()
-
         self.plot=plotting
         self.animation=animation
+        self.convergence_experiment=convergence_experiment
         self.conservation_check=conservation_check
+
+        # self.phi = self.create_phi(0) 
+        # self.phiOld = self.phi.copy()
 
         if plotting:
             #plotting analytical solution over time
@@ -61,7 +65,6 @@ class solver:
 
             plt.savefig('analytical_solution.pdf')
             plt.show()
-            plt.cla()
 
     def animation_plotting(self,n,T='title'):
         """Create an animation of the finite difference solution and the analytical solution evolving over time.
@@ -124,8 +127,10 @@ class solver:
         Returns:
             phi (numpy array): analytical solution to the linear advection equation at time t.
         """
-        return np.sin(2*np.pi*(self.x-self.u*t))
-        #return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
+        if self.convergence_experiment:
+            return np.sin(2*np.pi*(self.x-self.u*t))
+        else:
+            return np.where((self.x-self.u*t)%1. < 0.5, np.power(np.sin(2*(self.x-self.u*t)*np.pi), 2), 0.)
 
     def RMSE(self,aim,pred):
         return np.sqrt(np.mean((aim-pred)**2))
@@ -133,11 +138,13 @@ class solver:
     def l2_error(self,aim,pred):
             return np.sqrt(sum(self.dx*(pred-aim)**2))/np.sqrt(sum(self.dx*aim**2))
     
+    
 
     def FTBS(self):
         """Solves the linear advection equation using the forward in time backwards in space scheme and plots the results.
         """
-        # print("now solving using FTBS")
+        self.phi = self.create_phi(0) 
+        self.phiOld = self.phi.copy()
 
         if self.plot:
             # set up plotting
@@ -166,7 +173,7 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('FTBS_test.pdf')
+            plt.savefig('FTBS.pdf')
             plt.show() 
 
         return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
@@ -174,7 +181,8 @@ class solver:
     def FTCS(self):
         """Solves the linear advection equation using the forward in time centered in space scheme and plots the results.
         """
-        # print("now solving using FTCS")
+        self.phi = self.create_phi(0) 
+        self.phiOld = self.phi.copy()
         
         if self.plot:
             # set up plotting
@@ -205,7 +213,7 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('FTCS_test.pdf')
+            plt.savefig('FTCS.pdf')
             plt.show() 
 
         return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
@@ -214,7 +222,9 @@ class solver:
     def CTCS(self):
         """Solves the linear advection equation using the centered in time centered in space scheme and plots the results.
         """
-        # print('Now solving using CTCS')
+        self.phi = self.create_phi(0) 
+        self.phiOld = self.phi.copy()
+
         if self.plot:
             #set up plotting
             fig, self.ax = plt.subplots(1,1,figsize=(14,6))
@@ -249,7 +259,6 @@ class solver:
         if self.animation:
             plt.show() 
         if self.plot:
-            plt.savefig('CTCS_test.pdf')
+            plt.savefig('CTCS.pdf')
             plt.show() 
-        print(n*self.dt)
         return self.l2_error(self.create_phi(self.nt*self.dt),self.phi)
